@@ -1,15 +1,35 @@
-import express from "express";      // Requisição do pacote do express
-const app = express();              // Instancia o Express
-const port = 3000;                  // Define a porta
+import express from "express";
+import pkg from "pg";
+import dotenv from "dotenv";
 
-app.get("/", (req, res) => {        // Cria endpoint na rota da raiz do projeto
-  console.log("Rota GET / solicitada");
+const app = express(); // Cria uma instância do Express.
+const port = 3000; // Define a porta em que o servidor irá "escutar" por requisições.
+dotenv.config(); // Executa a função de configuração do 'dotenv' carregando o .env
+const { Pool } = pkg;// Extrai a classe 'Pool' do pacote 'pg' que foi importado.
+
+app.get("/", async (req, res) => {
+
+  console.log("Rota GET / solicitada"); 
+
+  const db = new Pool({
+    connectionString: process.env.URL_BD,
+  });
+
+  let dbStatus = "ok";
+
+  try {
+    await db.query("SELECT 1");
+  } catch (e) {
+    dbStatus = e.message;
+  }
+
   res.json({
-		message: "API para perfumes",      // Substitua pelo conteúdo da sua API
-    author: "Matheus José Faustino Baleiro",    // Substitua pelo seu nome
+    descricao: "API para Perfumes",    // Substitua pelo conteúdo da sua API
+    autor: "Matheus José Faustino Balieiro",     // Substitua pelo seu nome
+    statusBD: dbStatus              // Informa se a conexão com o banco de dados foi bem-sucedida ou mostra o erro.
   });
 });
 
-app.listen(port, () => {            // Um socket para "escutar" as requisições
+app.listen(port, () => {
   console.log(`Serviço rodando na porta:  ${port}`);
 });
