@@ -1,35 +1,54 @@
-import express from "express";
-import pkg from "pg";
-import dotenv from "dotenv";
+import express from "express"; // Requisição do pacote do express
+import pkg from "pg"; // Requisição do pacote do pg (PostgreSQL)
+import dotenv from "dotenv"; // Importa o pacote dotenv para carregar variáveis de ambiente
+let pool = null; // Variável para armazenar o pool de conexões com o banco de dados
+const app = express(); // Inicializa o servidor Express
+const port = 3000; // Define a porta onde o servidor irá escutar
+dotenv.config(); // Carrega as variáveis de ambiente do arquivo .env
+const { Pool } = pkg; // Obtém o construtor Pool do pacote pg para gerenciar conexões com o banco de dados PostgreSQL
 
-const app = express(); // Cria uma instância do Express.
-const port = 3000; // Define a porta em que o servidor irá "escutar" por requisições.
-dotenv.config(); // Executa a função de configuração do 'dotenv' carregando o .env
-const { Pool } = pkg;// Extrai a classe 'Pool' do pacote 'pg' que foi importado.
-
+function conectarBD() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.URL_BD,
+    });
+  }
+  return pool;
+}
+app.get("/questoes", async (req, res) => {
+  console.log("Rota GET /questoes solicitada"); // Log no terminal para indicar que a rota foi acessada
+  const db = conectarBD();
+  try {
+    const resultado = await db.query("SELECT * FROM questoes"); // Executa uma consulta SQL para selecionar todas as questões
+    const dados = resultado.rows; // Obtém as linhas retornadas pela consulta
+    res.json(dados); // Retorna o resultado da consulta como JSON
+  } catch (e) {
+    console.error("Erro ao buscar questões:", e); // Log do erro no servidor
+    res.status(500).json({
+      erro: "Erro interno do servidor",
+      mensagem: "Não foi possível buscar as questões",
+    });
+  }
+});
 app.get("/", async (req, res) => {
-
-  console.log("Rota GET / solicitada"); 
-
-  const db = new Pool({
-    connectionString: process.env.URL_BD,
-  });
-
+  console.log("Rota GET / solicitada"); // Log no terminal para indicar que a rota foi acessada
+  const db = conectarBD();
   let dbStatus = "ok";
-
   try {
     await db.query("SELECT 1");
   } catch (e) {
     dbStatus = e.message;
   }
-
+  // Responde com um JSON contendo uma mensagem, o nome do autor e o status da conexão com o banco de dados
   res.json({
-    descricao: "API para Perfumes",    // Substitua pelo conteúdo da sua API
-    autor: "Matheus José Faustino Balieiro",     // Substitua pelo seu nome
-    statusBD: dbStatus              // Informa se a conexão com o banco de dados foi bem-sucedida ou mostra o erro.
+    message: "API para Perfurmes", // Substitua pelo conteúdo da sua API
+    author: "Matheus Jose Faustino Balieiro", // Substitua pelo seu nome
+    dbStatus: dbStatus,
   });
 });
 
 app.listen(port, () => {
+  // Inicia o servidor na porta definida
+  // Um socket para "escutar" as requisições
   console.log(`Serviço rodando na porta:  ${port}`);
 });
