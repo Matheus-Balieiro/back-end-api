@@ -42,7 +42,7 @@ app.get("/", async (req, res) => {
   // Responde com um JSON contendo uma mensagem, o nome do autor e o status da conexão com o banco de dados
   res.json({
     message: "API para Perfurmes", // Substitua pelo conteúdo da sua API
-    author: "Matheus Jose Faustino Balieiro", // Substitua pelo seu nome
+    author: "Matheus Balieiro", // Substitua pelo seu nome
     dbStatus: dbStatus,
   });
 });
